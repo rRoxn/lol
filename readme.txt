@@ -1,2 +1,2 @@
-Hej, vad kul att du läste denna. 
-Just me high
+Hej, vad kul att du läste detta. 
+Me just high
