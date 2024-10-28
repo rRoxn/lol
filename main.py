@@ -9,6 +9,8 @@ class petowner:
     def __init__(self, name):  # Constructor
         __name = name
         # Skapar objekt med constructorn och lägger till dessa i listan __djur
+        # Hårdkodar dessa in i listan, för att inte behöva ta emot värdena ifrån användare. Men det ska ju gå att lägga till djur i programmet.
+        # Har nog varit för mycket att göra det också.
         self.__djur.append(dog(3, "Magnus"))
         self.__djur.append(dog(13, "Göran"))
         self.__djur.append(puppy(6, "Milo"))
@@ -16,66 +18,64 @@ class petowner:
         self.__djur.append(bird(10, "Lucas"))
         self.__djur.append(fish(45, "Robert"))
 
-    # Funktion för att skriva ut alla djur i listan __djur
+    # Metod för att skriva ut alla djur i listan __djur
     def print_animals(self):
         print("Eggzons djur")
         for i, djur in enumerate(self.__djur):
             print(f"{i + 1}. {djur}")
 
-    # Funktion för att leka med djuren som kommer att hämta funktionen interact från djur klasserna
+    # Metod för att leka med ett djur i listan
     def play(self):
 
-        print("Välj ett djur att leka med")
-        self.print_animals()
-        while True:
+        print("Välj ett djur att leka med") #Print för fråga användare om Vilket djur
+        self.print_animals()                #Skickar efter print_animals metoden för att visa djur.
+        while True:                         #En while loop som väntar på input för ett djur.
             try:
                 val = int(input("Välj ett djur i listan: "))
                 if 1 <= val <= len(self.__djur):
                     djur = self.__djur[val - 1]
 
-                    # Removed the hunger check here
-
+                    # throw_ball
                     throw_ball = input("Vill du kasta en boll till djuret? (j/n): ")
                     if throw_ball.lower() == 'j':
-                        djur.interact(throw_ball=True)  # Throw ball
+                        djur.interact(throw_ball=True)  #Throw ball skickar tillbaka till metoden och ändrar värdet till True
                     else:
-                        djur.interact()  # Default interaction (wagging tail)
-                    djur._hungry = True
-                    break
+                        djur.interact()     #Kallar efter interact metoden i animals utan throw_ball.
+                    djur._hungry = True     #Ändrar _hungry värdet till True efter man lekt med djuret.
+                    break                   #Breaker loopen för man har lekt
                 else:
+                    #Skriver man en siffra som inte finns i listan så printas detta ut
                     print("Ogiltigt val! ange ett nummer ur listan.")
-
+            # Tar med en ValueError för att catcha fel om användaren skriver in något annat än int integer.
             except ValueError:
                 print("Ogiltigt inmatning Ange ett nummer")
 
+    #Metod för matning(feed) för djuren.
     def feed(self):
-        """
-        Användare kan använda denna funkktionen för att ge mat åt djuren
-        denna hämtar från Animal funktionen eat
-        Animal.eat() method.
-        """
-        print("Djuren väntar otåligt!")
-        self.print_animals()
 
+        print("Djuren väntar otåligt!") #Print som säger att djuren väntar otåligt innan val av djur.
+        self.print_animals()            #Hämtar metoden print_animals för att visa djuren
+        #Använder en try-except för att fånga fel skrivningar som användare gör, allt utom int
         try:
             val = int(input("Välj ett djur att mata (ange nummer): "))
-            if 1 <= val <= len(self.__djur):
-                djur = self.__djur[val - 1]  # Access the chosen animal
+            if 1 <= val <= len(self.__djur):             #Går igenom listan.
+                djur = self.__djur[val - 1]             #Tar valet minus et då man börjar räkna från 0 i listan så val 0 är = 1 för användaren.
+                #Det skickas till metoden feed i klasserna, där de tar emot den som ett arg.
+                food = input(f"Vad vill du mata {djur._name} med? "         #Skriver ut och frågar vad man vill mata djuret med
+                             f" (Favoritmat: {djur._favourite_food}): ")    #Och skriver ut favorit mat för djuret.
 
-                food = input(f"Vad vill du mata {djur._name} med? "
-                             f" (Favoritmat: {djur._favourite_food}): ")
+                #Om användaren skriver inget avbryts loopen och man går tillbaka.
+                if food.lower() == 'inget':
+                    return
 
-
-                if food.lower() == 'q':
-                    return  # Exit if the user enters 'q'
-
-                djur.eat(food)  # Hämtar funktionen eat(skickar med food värdet)
+                djur.eat(food) #Hämtar metoden eat(skickar med food värdet)
             else:
                 print("Ogiltigt val.")
+        #Except ValueError för typos
         except ValueError:
             print("Ogiltigt val.")
 
-    # Funktion för meny För att integrera med i __djur
+    #Run metod för programmet, och för en meny För att integrera med objekten i __djur
     def run(self):
         print("Sötnosarna")
         val = ""  # Initiera val till en tom sträng
@@ -97,93 +97,98 @@ class petowner:
                 print("Avslutar programmet...")
             else:
                 print("Ogiltigt val. Försök igen.")
-
+#ABC är då för att få klassen abstract. (ärver ifrån ABC
 class animal(ABC):
-
-    # Skapar en abstract klass där subklasserna ska ärva funktioner/värde. Som en blueprint för djur.
-    # Där jag skapar dessa funktioner för "dog" som en blueprint.
-    #
-
+    """
+    Skapar en abstract klass där denna klass är som en blueprint för animals när man skapar djur.
+    Den definiera "vanliga" attributes and behaviors som alla djur har. Subklasserna kommer att ärva ifrån
+    denna klassen.
+    Denna klass kallas då aldrig utan subklasserna kallar till denna.
+    """
+    #Variabler för hålla objektens attributes
     _age = 0
     _name = ""
     _hungry = False
     _favourite_food = "Kött"
 
-    @abstractmethod  # För att klassen ska bli abstrakt
+    @abstractmethod  # För att meotoden ska ses som abstract och göra så att alla subklasser måste ha en __init__
     def __init__(self, age, name):
 
         self._age = age
         self._name = name
-
+    #Metod för att ta hand om matningen för djuren. feed ifrån petowner kallar denna metod.
+    #Den använder food som ett arg
     def eat(self, food):
-        """
-        Handles eating behavior.
-        1 feeding of favorite food to get hungry, 2 with other food.
-        """
+
         print("Matdax!")
+        #Lägger till en variabel för mat räknare
         feed_count = 0
         while True:
+            #Lägger till en i räknare.
             feed_count += 1
-            # Convert both food and _favourite_food to lowercase for comparison
+            # konverterar input till lowercase.
             if food.lower() == self._favourite_food.lower():
+                #Om food är favourite_food så sätt self_hungry som False och då blir djuret "mätt"
                 print(f"{self._name} äter {food} med glädje!")
                 self._hungry = False
                 print("Djuret är Mätt")
-                feed_limit = 1  # 1 feeding for favorite food
+                feed_limit = 1  # Lägger feed limit till 1 för favorit mat.
+                #Om man matar med något annat så skriver den ut att djuret ff är hungrig. Man måste mata djuren två gånger med annan mat.
             else:
                 print(f"{self._name} äter {food}, men är fortfarande lite hungrig.")
-                feed_limit = 2  # 2 feedings for other food
 
+                #Sätter feed limit till 2 då man behöver mata 2 gånger för att få djuret mätt
                 feed_limit = 2  # 2 feedings for other food
-
+            #Om räknare når feed limit så skriver den ut att djuret har ätit tillräckligt och vill leka
             if feed_count >= feed_limit:
                 self._hungry = False
                 print(f"{self._name} har ätit tillräckligt och vill nu leka.")
                 break
 
-            # Ask if the user wants to feed the animal again
+            #Frågar om man vill mata igen efter man har matat djuret. Om nej så breaker de.
             another = input("Mata mer? (j/n): ")
             if another.lower() != 'j':
                 break
 
-            # Get new food input for the next iteration
+            # Få ny mat input för denna gången.
             food = input(f"Vad vill du mata {self._name} med mer? "
                          f"(Favoritmat: {self._favourite_food}): ")
 
-
-    def interact(self, throw_ball=False):  # Default parameter for overloading
+    #Metod för att integrera med djuren.
+    def interact(self, throw_ball=False):  # Default parameter, for throw ball.
         if throw_ball:
             if self._hungry:
                 print(f"{self._name} är för hungrig för att jaga bollen.")
             else:
-                # Age-specific behavior (example for dogs)
+                # Ålders koll för djuren som använder denna.
                 if self._age < 2:
                     print(f"{self._name} springer klumpigt efter bollen.")
                 elif self._age < 7:
                     print(f"{self._name} jagar entusiastiskt efter bollen!")
                 else:
                     print(f"{self._name} orkar inte springa efter bollen, men viftar glatt på svansen.")
-        else:  # Original behavior when throw_ball is False
-            print(f"{self._name} viftar glatt på svansen.")
+        #Denna får man om man leker med djuren utan att kasta bollen till de.
+        else:
+            print(f"{self._name} blir glad.")
 
-     # Funktion för att skriva ut objekten.
+     #Metod för att skriva ut objekten i listan. Sätter olika för hunger värdet.
     def __str__(self):
         hungry_status = "är mätt" if not self._hungry else "är hungrig"
         return f"{self._name} ({type(self).__name__}), {self._age} år, {hungry_status}"
-
+#Klass för hundar som ärver ifrån animal.
 class dog(animal):
     def __init__(self, _age, _name):
         super().__init__(_age, _name)
         print("En hund har skapats")
 
 
-
+#klass för valpar som ärver i från dog.
 class puppy(dog):
-    def __init__(self, months, name):  # Constructor with name and months as arguments
+    def __init__(self, months, name):  # Constructor med månader och namn istället
 
-        super().__init__(0, name)  # Call the base class constructor with age 0 and the given name
-        self._months = months  # Assign the months value to the puppy's attribute
-
+        super().__init__(0, name)  # Kallar efter baseclass och ger värdet 0 as age.
+        self._months = months  # Ger klassen months som ett värde.
+#Klass för katter som ärver i från animal men har egna attributes och metoder.
 class cat(animal):
     #Klass variabel för favorit mat för katt
     _favourite_food = "Fisk"
@@ -199,53 +204,62 @@ class cat(animal):
             else:
                 print(f"{self._name} tittar på bollen med ointresse.")
         else:
-            super().interact()  # Call the base class interact()
-
+            super().interact()
     def eat(self, food):
 
-        """
-          Handles the eating behavior of the cat, including a chance to
-          hunt for a mouse if not given its favorite food.
-          """
+
+         # Hanterar eating för katten om maa inte ger katten favorit maten så har katten 50% chans att jaga en mus
+
         if food != self._favourite_food and random.random() < 0.5:
             print("Katten ger sig ut på jakt efter en mus!")
-            # Simulate hunting - you can add more elaborate logic here if needed
+            #Simulerar att katten jagar en mus och blir mätt av att äta den.
             print("Katten fångade en mus och är mätt!")
             self._hungry = False  # Katten är mätt efter ätit sin mus.
         else:
-            # If the cat gets its favorite food or doesn't hunt,
-            # call the original eat() method from the Animal class
+            # Om katten får sin favoritmat så jagar inte han och man kallar efter metoden i animals
+
             super().eat(food)
 
 
-        # class fish(animal):
+#Klass för fiskar har också egna attributes och metoder. då jag ändrar metoden för interact så man inte kan leka med detta djur
 class fish(animal):
+
     _favourite_food = "fiskmat"
+
     def __init__(self, _age, _name):
         super().__init__(_age, _name)
         print("En fisk har skapas")
 
     def interact(self, throw_ball=False):
-        return super().interact(throw_ball)
+        if throw_ball:
+            print(f"{self._name} är en fisk och kan inte leka med en boll!")  # Fish-specific message
+        else:
+            #Skriver ut detta om man inte kastar bollen till fisken som då inte går. Går ej att leka med en fisk.
+            print(f"{self._name} är en fisk och kan inte leka!")
+
 
     def eat(self, food):
         print("Matdax")
-        if food != self._favourite_food:
-            print("Fågeln är mätt och kvittar gott")
+        if food.lower() != self._favourite_food.lower():
+            print("Fisken är mätt och simmar runt.")
             self._hungry = False
 
-        else:
-            super().eat(food)
-
+#Klass för fågeln
 class bird(animal):
     #klassvariabl.
     _favourite_food = "solrosfrön"
     def __init__(self, _age, _name):
         super().__init__(_age, _name)
         print("En fågel har skapats")
-
+    #metod för interact
     def interact(self, throw_ball=False):
-        return super().interact(throw_ball)
+        if throw_ball:
+            if self._hungry:
+                print(f"{self._name} är för hungrig för att bry sig om bollen.")
+            else:
+                print(f"{self._name} flyger efter bollen men får inte tag på den.")
+
+        else: super().interact()
 
     def eat(self, food):
         if food != self._favourite_food:
@@ -256,7 +270,7 @@ class bird(animal):
             super().eat(food)
 
 
-
+#Skapar en variabel för Egzon som kommer vara petowner. Sen kör man denna.
 Egzon = petowner("Egzon")
 Egzon.run()
 
